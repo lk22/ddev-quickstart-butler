@@ -1,9 +1,9 @@
 package butler
 
 import (
+	"ddevbutler/wordpress"
 	"fmt"
 	"os"
-	"ddevbutler/wordpress"
 )
 
 func InitializeProjectFolder(folder string) {
@@ -14,7 +14,7 @@ func InitializeProjectFolder(folder string) {
 }
 
 func PrintSupportedProjectTypes() {
-	fmt.Println("I currently support the following project types");
+	fmt.Println("I currently support the following project types")
 	fmt.Println("1. Wordpress")
 }
 
@@ -25,7 +25,7 @@ func InitializeProject(project_name string, project_type string) {
 		os.Chdir(project_name)
 		wordpress.InitializeProject(project_name)
 	default:
-		fmt.Println("Sorry, I don't know how to initialize a project of type: " + project_type);
+		fmt.Println("Sorry, I don't know how to initialize a project of type: " + project_type)
 		PrintSupportedProjectTypes()
 	}
 }
