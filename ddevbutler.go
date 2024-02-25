@@ -3,6 +3,7 @@ package main
 import (
 	"ddevbutler/butler"
 	"fmt"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/nexidian/gocliselect"
@@ -27,19 +28,37 @@ func renderWelcomeMessage() {
  */
 func main() {
 	renderWelcomeMessage()
-	menu := gocliselect.NewMenu("Pick your project type")
-	menu.AddItem("Wordpress", "wordpress")
-	menu.AddItem("Backdrop", "backdrop")
-	menu.AddItem("Craft CMS", "craftcms")
-	menu.AddItem("Drupal", "drupal")
+	menu := gocliselect.NewMenu("Choose an action i should perform")
+	menu.AddItem("Scaffold new project", "scaffold")
+	menu.AddItem("Starting project", "start")
+	menu.AddItem("Stop project", "stop")
+	menu.AddItem("remove project", "remove")
+	menu.AddItem("List all projects", "list")
+	menu.AddItem("Quit", "quit")
 
-	project_type := menu.Display()
-	var project_name string
+	action := menu.Display()
 
-	fmt.Println("You have selected the project type: " + project_type)
-	fmt.Println("Please enter the project name")
-	fmt.Scanln(&project_name)
-	fmt.Println("Initializing project:", project_name)
-	butler.InitializeProject(project_name, project_type)
+	switch action {
+	case "scaffold":
+		butler.InitializeScaffoldingProjectTypesProcedure()
+	case "start":
+		fmt.Println("Starting project")
+		time.Sleep(2 * time.Second)
+		butler.StartDdevProject()
+	case "stop":
+		fmt.Println("Stopping project")
+		time.Sleep(2 * time.Second)
+	case "quit":
+		fmt.Println("Goodbye!")
+		return
+	}
+
+	// var project_name string
+
+	// fmt.Println("You have selected the project type: " + project_type)
+	// fmt.Println("Please enter the project name")
+	// fmt.Scanln(&project_name)
+	// fmt.Println("Initializing project:", project_name)
+	// butler.InitializeProject(project_name, project_type)
 
 }
