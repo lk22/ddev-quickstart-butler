@@ -9,6 +9,19 @@ import (
 	"github.com/nexidian/gocliselect"
 )
 
+type Butler interface {
+	Trigger(command string, args string)
+	checkError(err error)
+}
+
+type ButlerCommand struct {
+	Command  string
+	Arg      string
+	Multiple []string
+}
+
+var GlobalButlerCommand ButlerCommand
+
 func InitializeProjectFolder(folder string) {
 	err := os.Mkdir(folder, 0755)
 	if err != nil {
@@ -54,16 +67,36 @@ func InitializeProject(project_name string, project_type string) {
 	}
 }
 
+func ProcessStrings(strings []string) {
+	for _, str := range strings {
+		fmt.Println(str)
+	}
+}
+
 func UtilStartDdevProject() {
-	cmd := exec.Command("ddev", "start")
+	GlobalButlerCommand.Trigger("start", "")
+}
+
+func UtilStopDdevProject() {
+	GlobalButlerCommand.Trigger("stop", "")
+}
+
+func UtilImportDatabase(db_file string) {
+	GlobalButlerCommand.Trigger("import-db", db_file)
+}
+
+func (butlerCommand *ButlerCommand) Trigger(command string, arg ...string) {
+	cmd := exec.Command("ddev", command)
+	if len(arg) > 0 {
+		cmd = exec.Command("ddev", command, arg[0])
+	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Run()
 }
 
-func UtilStopDdevProject() {
-	cmd := exec.Command("ddev", "stop")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
+func (bc *ButlerCommand) checkError(err error) {
+	if err != nil {
+		fmt.Println("Error running the command")
+	}
 }

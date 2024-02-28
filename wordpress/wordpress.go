@@ -1,8 +1,7 @@
 package wordpress
 
 import (
-	"os"
-	"os/exec"
+	"ddevbutler/butler"
 	"time"
 
 	"github.com/fatih/color"
@@ -14,10 +13,7 @@ import (
 func RunDdevConfigCommand(project_name string) {
 	color.Green("Configuring ", project_name)
 	time.Sleep(2 * time.Second)
-	cmd := exec.Command("ddev", "config", "--project-type=wordpress", "--php-version=8.1")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
+	butler.GlobalButlerCommand.Trigger("config", "--project-type=wordpress", "--php-version=8.1")
 }
 
 /*
@@ -26,10 +22,7 @@ func RunDdevConfigCommand(project_name string) {
 func RunDdevStartCommand(project_name string) {
 	color.Green("Starting", project_name, "..")
 	time.Sleep(2 * time.Second)
-	cmd := exec.Command("ddev", "start")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
+	butler.GlobalButlerCommand.Trigger("start", "")
 }
 
 /*
@@ -38,10 +31,7 @@ func RunDdevStartCommand(project_name string) {
 func RunDdevWpCoreDownloadCommand() {
 	color.Green("Downloading WordPress core hold on!...")
 	time.Sleep(2 * time.Second)
-	cmd := exec.Command("ddev", "wp", "core", "download")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
+	butler.GlobalButlerCommand.Trigger("wp", "core", "download")
 }
 
 /*
@@ -50,20 +40,14 @@ func RunDdevWpCoreDownloadCommand() {
 func RunDdevLaunchCommand(project_name string) {
 	color.Green("Launching", project_name, "..")
 	time.Sleep(2 * time.Second)
-	cmd := exec.Command("ddev", "launch")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
+	butler.GlobalButlerCommand.Trigger("launch", "")
 }
 
 /*
 * Run the ddev wp core install command to install the wordpress core in the project
  */
 func RunDdevWpCoreInstallCommand(project_name string) {
-	cmd := exec.Command("ddev", "wp", "core", "install", "--url="+project_name, "--title="+project_name, "--admin_user=admin", "--admin_password=password", "--admin_email=test@test.dk --prompt=admin_password")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
+	butler.GlobalButlerCommand.Trigger("wp", "core", "install", "--url="+project_name, "--title="+project_name, "--admin_user=admin", "--admin_password=password", "--admin_email=test@test.dk --prompt=admin_password")
 }
 
 /*

@@ -3,7 +3,6 @@ package main
 import (
 	"ddevbutler/butler"
 	"fmt"
-	"time"
 
 	"github.com/fatih/color"
 	"github.com/nexidian/gocliselect"
@@ -30,12 +29,12 @@ func main() {
 	renderWelcomeMessage()
 	menu := gocliselect.NewMenu("Choose an action i should perform")
 	menu.AddItem("Scaffold new project", "scaffold")
+	menu.AddItem("Import database", "dbimport")
 	menu.AddItem("Starting project", "start")
 	menu.AddItem("Stop project", "stop")
 	menu.AddItem("remove project", "remove")
 	menu.AddItem("List all projects", "list")
 	menu.AddItem("Quit", "quit")
-
 	action := menu.Display()
 
 	switch action {
@@ -43,22 +42,17 @@ func main() {
 		butler.InitializeScaffoldingProjectTypesProcedure()
 	case "start":
 		fmt.Println("Starting project")
-		time.Sleep(2 * time.Second)
-		butler.StartDdevProject()
+		butler.UtilStartDdevProject()
 	case "stop":
 		fmt.Println("Stopping project")
-		time.Sleep(2 * time.Second)
+		butler.UtilStopDdevProject()
+	case "dbimport":
+		fmt.Println("Give me the path to the database file")
+		var db_file string
+		fmt.Scanln(&db_file)
+		butler.UtilImportDatabase(db_file)
 	case "quit":
 		fmt.Println("Goodbye!")
 		return
 	}
-
-	// var project_name string
-
-	// fmt.Println("You have selected the project type: " + project_type)
-	// fmt.Println("Please enter the project name")
-	// fmt.Scanln(&project_name)
-	// fmt.Println("Initializing project:", project_name)
-	// butler.InitializeProject(project_name, project_type)
-
 }
