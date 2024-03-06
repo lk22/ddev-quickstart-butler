@@ -28,6 +28,8 @@ func renderWelcomeMessage() {
 func renderProjectTypeMenu() {
 	println("Please choose a project type")
 
+	numberOftypesChannel := make(chan int)
+
 	menu := gocliselect.NewMenu("Choose a project type")
 	menu.AddItem("WordPress", "wordpress")
 	menu.AddItem("Drupal", "drupal")
@@ -35,12 +37,62 @@ func renderProjectTypeMenu() {
 	menu.AddItem("Symfony", "symfony")
 	menu.AddItem("Go back", "back")
 	action := menu.Display()
-	var project_name string
-	fmt.Scanln(&project_name)
 
 	if action == "back" {
 		renderActionsMenu()
+	} else {
+		var project_name string
+		fmt.Scanln(&project_name)
+
+		// increment the number of times the user has entered a project name if the project name is empty
+		// TODO: make sure the user has entered a project and validate if
+		// TODO: its empty and make the user have 3 chances to enter a project name
+		go func() {
+
+			// does the channel exist?
+			if numberOftypesChannel == nil {
+				numberOftypesChannel = make(chan int)
+			}
+
+			select {
+			case number := <-numberOftypesChannel:
+				fmt.Println("Number of times the user has entered a project name: ", number)
+
+				// is project name empty?
+				if project_name == "" {
+					number++
+					numberOftypesChannel <- number
+
+					if number == 1 {
+						fmt.Println("Please provide me a project name")
+						fmt.Scanln(&project_name)
+					} else if number == 2 {
+						fmt.Println("Please provide me a project name")
+						fmt.Scanln(&project_name)
+					} else if number == 3 || number > 3 {
+						fmt.Println("You have entered a project name more than 3 times")
+					}
+				}
+			}
+		}()
+
+		// close the channel
+		defer close(numberOftypesChannel) // using defer for cleanup of the channel
+
+		// go back to the main menu
+		// closing the channel
+		close(numberOftypesChannel)
+		// and re render the main menu
+		renderActionsMenu()
+		// i want to count the number of times the user has entered a project name
+		// for each time the enters a project name, i want to check if the project name is empty
 	}
+}
+
+func reRenderButlerMenu() {
+	fmt.Println("Command executed successfully")
+	fmt.Println("What can i help you with next?")
+	renderActionsMenu()
 }
 
 /*
@@ -70,28 +122,35 @@ func renderActionsMenu() {
 	case "start":
 		fmt.Println("Starting project")
 		butler.UtilStartDdevProject()
+		reRenderButlerMenu()
 	case "stop":
 		fmt.Println("Stopping project")
 		butler.UtilStopDdevProject()
+		reRenderButlerMenu()
 	case "remove":
 		var project_name string
 		fmt.Println("Give me the name of the project you want to remove")
 		fmt.Scanln(&project_name)
 		butler.UtilRemoveProject(project_name)
+		reRenderButlerMenu()
 	case "dbimport":
 		fmt.Println("Give me the path to the database file")
 		var db_file string
 		fmt.Scanln(&db_file)
 		butler.UtilImportDatabase(db_file)
+		reRenderButlerMenu()
 	case "dbexport":
 		fmt.Println("Exporting database")
 		butler.UtilExportDatabase()
+		reRenderButlerMenu()
 	case "list":
 		fmt.Println("Listing all projects")
 		butler.UtilListProjects()
+		reRenderButlerMenu()
 	case "help":
 		fmt.Println("Help")
 		butler.Help()
+		reRenderButlerMenu()
 	case "quit":
 		fmt.Println("Goodbye!")
 		os.Exit(0)
