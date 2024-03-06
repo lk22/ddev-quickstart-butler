@@ -1,102 +1,122 @@
 package butler
 
 import (
-	"ddevbutler/wordpress"
-	"fmt"
 	"os"
 	"os/exec"
+	"time"
 
-	"github.com/nexidian/gocliselect"
+	"github.com/fatih/color"
 )
 
+/********* Butler interface *********/
 type Butler interface {
 	Trigger(command string, args string)
 	checkError(err error)
+	InitializeScaffoldingProjectTypesProcedure()
 }
 
+/********* Project interface *********/
+type Project interface {
+	InitializeProject(project_name string, project_type string)
+	RunDdevConfigCommand(project_name string)
+	RunDdevStartCommand(project_name string)
+	RunDdevLaunchCommand(project_name string)
+}
+
+/********* ButlerCommand struct *********/
 type ButlerCommand struct {
 	Command  string
 	Arg      string
 	Multiple []string
 }
 
-var GlobalButlerCommand ButlerCommand
+var Command ButlerCommand
 
-func InitializeProjectFolder(folder string) {
-	err := os.Mkdir(folder, 0755)
-	if err != nil {
-		fmt.Println("Error creating the project directory")
-	}
-}
-
-func InitializeScaffoldingProjectTypesProcedure() {
-	menu := gocliselect.NewMenu("Select the project type you want to initialize")
-	menu.AddItem("Wordpress", "wordpress")
-	menu.AddItem("Drupal", "drupal")
-	menu.AddItem("Laravel", "laravel")
-	menu.AddItem("Go back", "back")
-
-	project_type := menu.Display()
-
-	if project_type == "back" {
-		return
-	}
-
-	var project_name string
-	fmt.Println("You have selected the project type: " + project_type)
-	fmt.Println("Please enter the project name")
-	fmt.Scanln(&project_name)
-
-	if project_name == "" {
-		fmt.Println("Please enter a valid project name")
-		return
-	}
-
-	InitializeProject(project_name, project_type)
-}
-
-func InitializeProject(project_name string, project_type string) {
-	switch project_type {
-	case "wordpress":
-		InitializeProjectFolder(project_name)
-		os.Chdir(project_name)
-		wordpress.InitializeProject(project_name)
-	default:
-		fmt.Println("Sorry, I don't know how to initialize a project of type: " + project_type)
-		InitializeScaffoldingProjectTypesProcedure()
-	}
-}
-
-func ProcessStrings(strings []string) {
-	for _, str := range strings {
-		fmt.Println(str)
-	}
-}
-
+/*
+* DDEV CLI Butler Utility functions
+ */
 func UtilStartDdevProject() {
-	GlobalButlerCommand.Trigger("start", "")
+	Command.Trigger("start", "")
 }
 
+/********* Utility function to stop project *********/
 func UtilStopDdevProject() {
-	GlobalButlerCommand.Trigger("stop", "")
+	Command.Trigger("stop", "")
 }
 
+/********* Utility function to remove project *********/
+func UtilRemoveProject(project_name string) {
+	Command.Arg = project_name
+	Command.Trigger("rm", Command.Arg)
+}
+
+/********* Utility function to import database *********/
 func UtilImportDatabase(db_file string) {
-	GlobalButlerCommand.Trigger("import-db", db_file)
+	Command.Arg = db_file
+	Command.Trigger("import-db", Command.Arg)
 }
 
-func (butlerCommand *ButlerCommand) Trigger(command string, arg ...string) {
+/********* Utility function to export database *********/
+func UtilExportDatabase() {
+	Command.Trigger("export-db", "")
+}
+
+/********* Utility function to list all projects *********/
+func UtilListProjects() {
+	Command.Trigger("list", "")
+}
+
+/********* Utility function to trigger help command *********/
+func Help() {
+	Command.Trigger("help", "")
+}
+
+/*
+* Main function to trigger commands from the butler
+ */
+func (butlerCommand *ButlerCommand) Trigger(command string, arg string) {
 	cmd := exec.Command("ddev", command)
-	if len(arg) > 0 {
-		cmd = exec.Command("ddev", command, arg[0])
+	if arg != "" {
+		cmd = exec.Command("ddev", command, arg)
 	}
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Run()
 }
 
+/********* Checking for error *********/
 func (bc *ButlerCommand) checkError(err error) {
 	if err != nil {
-		fmt.Println("Error running the command")
+		println("Error running the command")
 	}
+}
+
+/********* Initialize project folder *********/
+func InitializeProjectFolder(folder string) {
+	err := os.Mkdir(folder, 0755)
+	if err != nil {
+		println("Error creating the project directory")
+	}
+}
+
+/*
+* Perfomming scaffold procedure for the WordPress Quickstart
+* https://ddev.readthedocs.io/en/latest/users/quickstart/#wordpress
+ */
+func ScaffoldWordpressProject() {
+	color.Green("Scaffolding WordPress project")
+	time.Sleep(2 * time.Second)
+	Command.Trigger("config", "--project-type=wordpress --php-version=8.1")
+
+	color.Green("Starting WordPRess project")
+	time.Sleep(2 * time.Second)
+	Command.Trigger("start", "")
+
+	color.Green("Downloading WordPress core hold on!...")
+	time.Sleep(2 * time.Second)
+	Command.Trigger("wp", "core download")
+
+	color.Green("Launching WordPress project")
+	time.Sleep(2 * time.Second)
+	Command.Trigger("launch", "")
 }
